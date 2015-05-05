@@ -1,5 +1,6 @@
 # Provides the normalized Lomb periodogram, a method for determining the spectral
 # power of a signal at arbitrary frequencies
+# For fast method, see http://articles.adsabs.harvard.edu//full/1989ApJ...338..277P/0000277.000.html
 use strict;
 use warnings;
 
