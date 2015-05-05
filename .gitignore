@@ -1,0 +1,7 @@
+Build
+_build
+blib
+lib/PDL/Periodogram.c
+lib/PDL/Periodogram.o
+lib/PDL/Periodogram.pm
+lib/PDL/Periodogram.xs
