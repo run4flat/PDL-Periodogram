@@ -1,4 +1,4 @@
-# Provides the Lomb periodogram, a method for determining the spectral
+# Provides the normalized Lomb periodogram, a method for determining the spectral
 # power of a signal at arbitrary frequencies
 use strict;
 use warnings;
@@ -25,8 +25,19 @@ pp_def('periodogram',
 	Pars => 'data(i); t(i); frequencies(j); [o] power(j)',
 	Code => q{
 		double om, sin_sum, cos_sum, tau, cos_sq_sum, sin_sq_sum,
-			rel_t, sin_t, cos_t;
+			rel_t, sin_t, cos_t, data_sum, data_sq_sum, data_avg, data_var;
+		int N_1 = $SIZE(i);
 		threadloop %{
+			/* Compute the data's average and standard deviation first */
+			data_sum = data_sq_sum = 0;
+			loop(i) %{
+				data_sum += $data();
+				data_sq_sum += $data() * $data();
+			%}
+			data_avg = data_sum / $SIZE(i);
+			data_var = data_sq_sum / N_1 - 2 * data_avg * data_sum / N_1
+				+ $SIZE(i) * data_avg*data_avg / N_1;
+			
 			loop(j) %{ /* loop over frequencies */
 				/* Compute tau for this frequency */
 				om = $frequencies();
@@ -45,13 +56,12 @@ pp_def('periodogram',
 					rel_t = $t() - tau;
 					sin_t = sin(om * rel_t);
 					cos_t = cos(om * rel_t);
-					sin_sum += $data() * sin_t;
-					cos_sum += $data() * cos_t;
+					sin_sum += ($data() - data_avg) * sin_t;
+					cos_sum += ($data() - data_avg) * cos_t;
 					sin_sq_sum += sin_t*sin_t;
 					cos_sq_sum += cos_t*cos_t;
 				%}
-				$power() = (sin_sum*sin_sum / sin_sq_sum + cos_sum*cos_sum / cos_sq_sum) / 2;
-				
+				$power() = (sin_sum*sin_sum / sin_sq_sum + cos_sum*cos_sum / cos_sq_sum) / 2 / data_var;
 			%}
 		%}
 	},
